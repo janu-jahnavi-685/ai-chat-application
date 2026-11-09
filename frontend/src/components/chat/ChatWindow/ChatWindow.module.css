@@ -1,0 +1,83 @@
+.window {
+  flex: 1;
+  overflow-y: auto;
+  /* Responsive horizontal padding — more breathing room on wide screens */
+  padding: 24px max(20px, calc((100% - var(--chat-max-width)) / 2));
+  display: flex;
+  flex-direction: column;
+}
+
+.centered {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.welcome {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  gap: 14px;
+}
+
+.welcomeIcon {
+  font-size: 44px;
+  color: var(--accent-color);
+  line-height: 1;
+}
+
+.welcomeTitle {
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.welcomeSubtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+  max-width: 480px;
+}
+
+.messages {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  /* Takes full width of the already-padded container */
+  width: 100%;
+}
+
+.errorBanner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: 13px;
+  color: #fca5a5;
+}
+
+.errorBanner svg { flex-shrink: 0; }
+.errorBanner span { flex: 1; }
+
+.dismissBtn {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 18px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: opacity var(--transition);
+  flex-shrink: 0;
+}
+
+.dismissBtn:hover { opacity: 1; }

@@ -1,0 +1,15 @@
+# Production override — uses pre-built images from GitHub Container Registry
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Required env vars (set in your host or CI environment):
+#   GITHUB_OWNER      — your GitHub username or org
+#   IMAGE_TAG         — e.g. "main" or "v1.0.0"
+
+services:
+  backend:
+    image: ghcr.io/${GITHUB_OWNER}/tdk-ai-chat-backend:${IMAGE_TAG:-main}
+    build: !reset null   # disable local build in prod
+
+  frontend:
+    image: ghcr.io/${GITHUB_OWNER}/tdk-ai-chat-frontend:${IMAGE_TAG:-main}
+    build: !reset null   # disable local build in prod

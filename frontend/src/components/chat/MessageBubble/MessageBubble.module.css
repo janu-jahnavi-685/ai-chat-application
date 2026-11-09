@@ -1,0 +1,104 @@
+.wrapper {
+  display: flex;
+  gap: 10px;
+  /* Full width of the padded container — padding already constrains the max */
+  width: 100%;
+}
+
+.user {
+  flex-direction: row-reverse;
+  margin-left: auto;
+}
+
+.assistant {
+  flex-direction: row;
+  margin-right: auto;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex-shrink: 0;
+  align-self: flex-end;
+}
+
+.bubble {
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  /* User bubbles cap at 75%; assistant can use the full width for long responses */
+  max-width: 75%;
+  word-break: break-word;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.userBubble {
+  background: var(--user-bubble-bg);
+  border: 1px solid rgba(108, 99, 255, 0.2);
+  border-bottom-right-radius: var(--radius-sm);
+  color: var(--text-primary);
+}
+
+.assistantBubble {
+  background: var(--assistant-bubble-bg);
+  border: 1px solid var(--border-color);
+  border-bottom-left-radius: var(--radius-sm);
+  color: var(--text-primary);
+  /* Assistant responses can use the full container width */
+  max-width: 100%;
+}
+
+.failedBubble {
+  opacity: 0.6;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.userText {
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Markdown styles */
+.markdown p { margin: 0 0 10px; }
+.markdown p:last-child { margin-bottom: 0; }
+.markdown ul, .markdown ol { padding-left: 20px; margin-bottom: 10px; }
+.markdown li { margin-bottom: 4px; }
+.markdown h1, .markdown h2, .markdown h3 { margin-top: 16px; margin-bottom: 8px; font-weight: 600; }
+.markdown h1 { font-size: 18px; }
+.markdown h2 { font-size: 16px; }
+.markdown h3 { font-size: 15px; }
+.markdown blockquote {
+  border-left: 3px solid var(--accent-color);
+  padding-left: 12px;
+  margin: 8px 0;
+  color: var(--text-secondary);
+}
+.markdown table { border-collapse: collapse; width: 100%; margin-bottom: 10px; }
+.markdown th, .markdown td {
+  border: 1px solid var(--border-color);
+  padding: 6px 10px;
+  text-align: left;
+  font-size: 13px;
+}
+.markdown th { background: var(--bg-tertiary); font-weight: 600; }
+.markdown a { color: var(--accent-color); }
+.markdown a:hover { text-decoration: underline; }
+.markdown strong { font-weight: 600; }
+.markdown em { font-style: italic; }
+.markdown hr { border: none; border-top: 1px solid var(--border-color); margin: 12px 0; }
+
+.inlineCode {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}

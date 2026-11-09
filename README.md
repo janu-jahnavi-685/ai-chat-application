@@ -9,7 +9,7 @@ A full-stack AI chat application built with **React + Spring Boot**, featuring r
 - 🔐 JWT-based authentication (signup, login, logout)
 - 💬 Real-time AI responses via Server-Sent Events (SSE)
 - 📝 Persistent conversation history across sessions
-- 🤖 OpenAI GPT-4o-mini integration with conversation context
+- 🤖 OpenAI-compatible LLM integration (Groq or OpenAI) with conversation context
 - 🎨 Polished dark-mode UI with Markdown + code block rendering
 - 📱 Responsive design with mobile sidebar drawer
 - 🐳 One-command Docker Compose startup
@@ -28,12 +28,12 @@ A full-stack AI chat application built with **React + Spring Boot**, featuring r
 | Backend | Java 21 + Spring Boot 3.4.1 |
 | Security | Spring Security + JWT (jjwt) |
 | Persistence | Spring Data JPA + Flyway |
-| Database | MySQL 8.4 |
-| LLM | OpenAI Chat Completions API |
+| Database | MySQL 8.0 |
+| LLM | OpenAI-compatible Chat Completions API (Groq / OpenAI) |
 | Streaming | Server-Sent Events (SseEmitter) |
 | API Docs | Springdoc OpenAPI (Swagger UI) |
-| Backend Tests | JUnit 5 + Mockito |
-| Frontend Tests | Vitest + React Testing Library |
+| Backend Tests | JUnit 5 + Mockito + WireMock |
+| Frontend Tests | Vitest + React Testing Library + MSW |
 | Containerization | Docker + Docker Compose |
 
 ---
@@ -62,9 +62,9 @@ A full-stack AI chat application built with **React + Spring Boot**, featuring r
 └──────────┬──────────────────────────┬───────────────────────────┘
            │ JDBC (Flyway migrations)  │ HTTPS
            ▼                          ▼
-     ┌──────────┐              ┌────────────┐
-     │ MySQL 8  │              │ OpenAI API │
-     └──────────┘              └────────────┘
+     ┌──────────┐              ┌─────────┐
+     │ MySQL 8  │              │ LLM API │
+     └──────────┘              └─────────┘
 ```
 
 ### Backend Layers
@@ -77,7 +77,7 @@ A full-stack AI chat application built with **React + Spring Boot**, featuring r
 | Entity | JPA-mapped database tables |
 | DTO | API request/response shapes (records) |
 | Security | JWT filter, UserDetailsService |
-| Integration | OpenAI WebClient wrapper |
+| Integration | OpenAI-compatible WebClient wrapper |
 | Exception | @RestControllerAdvice global handler |
 
 ---
@@ -123,14 +123,14 @@ messages (id, conversation_id FK, role, content, status, created_at)
 |---|---|---|
 | POST | /api/chat/{id}/stream | Stream AI response (SSE) |
 
-Swagger UI available at: `http://localhost:8080/swagger-ui.html`
+Swagger UI available at: `http://localhost:9600/swagger-ui.html`
 
 ---
 
 ## SSE Streaming Flow
 
 ```
-Frontend                           Backend                        OpenAI
+Frontend                           Backend                        LLM API
   │                                   │                              │
   │── POST /api/chat/{id}/stream ────▶│                              │
   │   Authorization: Bearer <jwt>     │                              │
@@ -176,9 +176,7 @@ The backend is fully **stateless**:
 - Each instance independently validates JWT and queries MySQL
 - SSE connections are per-instance (each request is handled end-to-end by one instance)
 
-**Infrastructure deliberately kept simple** (modular monolith):
-- No Kubernetes, Kafka, Redis, or microservices
-- In-memory rate limiting via Bucket4j (suitable for single-instance or low-scale multi-instance)
+**Infrastructure deliberately kept simple** (modular monolith) — no Kubernetes, Kafka, Redis, or microservices.
 
 ---
 
@@ -222,7 +220,11 @@ Required values to change:
 | `MYSQL_PASSWORD` | Database password |
 | `MYSQL_ROOT_PASSWORD` | MySQL root password |
 | `JWT_SECRET` | ≥32 character random string |
-| `OPENAI_API_KEY` | Your OpenAI API key |
+| `OPENAI_API_KEY` | Your LLM provider API key |
+| `OPENAI_BASE_URL` | OpenAI-compatible API base URL (Groq or OpenAI) |
+| `OPENAI_MODEL` | Model name (e.g. `llama-3.1-8b-instant`, `gpt-4o-mini`) |
+
+The `.env.example` ships with Groq defaults (`https://api.groq.com/openai/v1` + `llama-3.1-8b-instant`); OpenAI values are shown commented out.
 
 ---
 
@@ -241,12 +243,15 @@ cp .env.example .env
 docker compose up --build
 
 # Application is ready at:
-# Frontend: http://localhost:3000
-# Backend API: http://localhost:8080
-# Swagger UI: http://localhost:8080/swagger-ui.html
+# Frontend: http://localhost:5000
+# Backend API: http://localhost:9600
+# Swagger UI: http://localhost:9600/swagger-ui.html
 ```
 
 MySQL data persists in the `mysql_data` Docker volume across restarts.
+
+> A production override (`docker-compose.prod.yml`) pulls pre-built images from GitHub Container Registry instead of building locally:
+> `docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d`
 
 ---
 
@@ -259,11 +264,13 @@ cd backend
 
 # Start MySQL locally (or use Docker just for MySQL)
 docker run -d --name tdk-mysql -e MYSQL_DATABASE=ai_chat -e MYSQL_USER=app_user \
-  -e MYSQL_PASSWORD=change_me -e MYSQL_ROOT_PASSWORD=root -p 3306:3306 mysql:8.4
+  -e MYSQL_PASSWORD=change_me -e MYSQL_ROOT_PASSWORD=change_me_root -p 3306:3306 mysql:8.0
 
 # Set environment variables
 export JWT_SECRET=your-secret-key-at-least-32-chars
-export OPENAI_API_KEY=your-openai-key
+export OPENAI_API_KEY=your-llm-api-key
+export OPENAI_BASE_URL=https://api.groq.com/openai/v1   # or https://api.openai.com/v1
+export OPENAI_MODEL=llama-3.1-8b-instant                # or gpt-4o-mini
 
 # Run
 mvn spring-boot:run
@@ -277,7 +284,7 @@ npm install
 npm run dev   # http://localhost:5173
 ```
 
-The Vite dev server proxies `/api` to `http://localhost:8080`.
+In local dev the frontend reads `VITE_API_BASE_URL` from `.env` (set to `http://localhost:9600/api` in `.env.example`), so both Axios REST calls and `fetch()` SSE streaming reach the backend on port 9600 directly.
 
 ---
 
@@ -299,7 +306,7 @@ npm test          # single run
 npm run test:watch  # watch mode
 ```
 
-Tests use H2 in-memory database and mocked OpenAI responses — no real API key needed.
+Backend tests use an H2 in-memory database (MySQL mode) and WireMock to stub the LLM endpoint — no real API key needed. Frontend tests use MSW to mock API responses.
 
 ---
 
@@ -312,6 +319,8 @@ The assessment explicitly requires:
 - **Spring MVC SseEmitter** — built-in SSE support without reactive complexity
 
 Node.js + MongoDB would be a valid alternative but was explicitly excluded from scope.
+
+The LLM layer is intentionally provider-agnostic: `OpenAiClient` talks to any OpenAI-compatible Chat Completions endpoint, so switching between Groq and OpenAI is a matter of changing `OPENAI_BASE_URL` and `OPENAI_MODEL` — no code changes required.
 
 ---
 

@@ -108,7 +108,8 @@ Backend (on sseTaskExecutor thread):
       6. llmService.streamResponse()
          → Build context (last 20 COMPLETED messages + system prompt)
          → OpenAiClient.streamCompletion(request, onToken, onComplete, onError)
-            → WebClient POST https://api.openai.com/v1/chat/completions (stream:true)
+            → WebClient POST ${OPENAI_BASE_URL}/chat/completions (stream:true)
+              (defaults to https://api.groq.com/openai/v1; OpenAI also supported)
             → Per line: OpenAiStreamHandler.extractToken()
             → onToken callback → SseEmitter.send(event:token)
             → onComplete callback → update assistant to COMPLETED → send event:done

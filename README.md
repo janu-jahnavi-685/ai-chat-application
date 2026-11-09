@@ -233,7 +233,7 @@ The `.env.example` ships with Groq defaults (`https://api.groq.com/openai/v1` + 
 ```bash
 # Clone and navigate
 git clone <repo-url>
-cd tdk-ai-chat
+cd ai-chat-application
 
 # Configure environment
 cp .env.example .env
